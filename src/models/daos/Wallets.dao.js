@@ -2,6 +2,7 @@ const MongoDBContainer = require('../containers/Mongodb.container');
 const { formatErrorObject } = require('../../utils/api.utils');
 const WalletSchema = require('../schemas/Wallet.schema');
 const constants = require('../../constants/api.constants');
+const ApiError = require('../../error/ApiError');
 
 const {
   STATUS: {
@@ -27,11 +28,7 @@ class WalletsDao extends MongoDBContainer {
   }
 
   async getAllWallets () {
-    try {
       return await this.getAll()
-    } catch (error) {
-      throw new Error(error.message);
-    }
   }
 
   async createWallet(walletItem) {
@@ -42,41 +39,18 @@ class WalletsDao extends MongoDBContainer {
     }
     catch(error) {
       if (error.message.toLowerCase().includes('e11000') || error.message.toLowerCase().includes('duplicate')) {
-        const newError = formatErrorObject(constants.STATUS.BAD_REQUEST, 'Wallet with given address already exist');
-        throw new Error(JSON.stringify(newError));
+        throw ApiError.badRequest('Wallet with given address already exist')
       }
-      throw new Error(error.message);
+      throw ApiError.internal('An error ocurred, please contact support')
     }
 
-  };
+  }
 
   async updateWallet (wallet, id) {
-    try {
       const updatedWallet = await this.updateItem(wallet, id)
       return updatedWallet
-    } catch (error) {
-      throw new Error(error.message);
-    }
   }
 
-  async getById(id) {
-    try {
-      const document = await this.model
-        .findById(id, { __v: 0 });
-      if (!document) {
-        const errorMessage = `Resource with id ${id} does not exist in our records`;
-        const newError = formatErrorObject(NOT_FOUND.tag, errorMessage);
-        throw new Error(JSON.stringify(newError));
-      } else {
-        return document;
-      }
-    }
-    catch(error) {
-      const newError = formatErrorObject(INTERNAL_ERROR.tag, error.message);
-      throw new Error(JSON.stringify(newError));
-    }
-  }
-
-};
+}
 
 module.exports = WalletsDao;
