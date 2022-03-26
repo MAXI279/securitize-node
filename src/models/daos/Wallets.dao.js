@@ -26,6 +26,14 @@ class WalletsDao extends MongoDBContainer {
     }
   }
 
+  async getAllWallets () {
+    try {
+      return await this.getAll()
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
   async createWallet(walletItem) {
     try {
       const wallet = await this.createItem(walletItem);
@@ -37,10 +45,19 @@ class WalletsDao extends MongoDBContainer {
         const newError = formatErrorObject(constants.STATUS.BAD_REQUEST, 'Wallet with given address already exist');
         throw new Error(JSON.stringify(newError));
       }
-      throw new Error(error);
+      throw new Error(error.message);
     }
 
   };
+
+  async updateWallet (wallet, id) {
+    try {
+      const updatedWallet = await this.updateItem(wallet, id)
+      return updatedWallet
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
 
   async getById(id) {
     try {
@@ -62,4 +79,4 @@ class WalletsDao extends MongoDBContainer {
 
 };
 
-module.exports = UsersDao;
+module.exports = WalletsDao;

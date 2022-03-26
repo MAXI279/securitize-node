@@ -22,7 +22,7 @@ class MongoDBContainer {
       const documents = await this.model.find(filter, { __v: 0 }).lean()
       return documents
     } catch (error) {
-      const newError = formatErrorObject(INTERNAL_ERROR.tag, error.message)
+      const newError = formatErrorObject(INTERNAL_ERROR, error.message)
       throw new Error(JSON.stringify(newError))
     }
   }
@@ -32,13 +32,13 @@ class MongoDBContainer {
       const document = await this.model.findById(id, { __v: 0 }).lean()
       if (!document) {
         const errorMessage = `Resource with id ${id} does not exist in our records`
-        const newError = formatErrorObject(NOT_FOUND.tag, errorMessage)
+        const newError = formatErrorObject(NOT_FOUND, errorMessage)
         throw new Error(JSON.stringify(newError))
       } else {
         return document
       }
     } catch (error) {
-      const newError = formatErrorObject(INTERNAL_ERROR.tag, error.message)
+      const newError = formatErrorObject(INTERNAL_ERROR, error.message)
       throw new Error(JSON.stringify(newError))
     }
   }
@@ -49,10 +49,26 @@ class MongoDBContainer {
       await newItem.save()
       return newItem
     } catch (err) {
-      const newError = formatErrorObject(INTERNAL_ERROR.tag, err.message)
+      const newError = formatErrorObject(INTERNAL_ERROR, err.message)
       throw new Error(JSON.stringify(newError))
     }
   }
+
+  async updateItem (obj, id) {
+    const document = await this.model.findById(id, { __v: 0 }).lean()
+    if (!document) {
+      const errorMessage = `Resource with id ${id} does not exist in our records`
+      const newError = formatErrorObject(NOT_FOUND, errorMessage)
+      throw new Error(JSON.stringify(newError))
+    }
+    try {
+        return this.model.updateOne({ _id: id }, { $set: obj })
+    } catch (err) {
+      const newError = formatErrorObject(INTERNAL_ERROR, err.message)
+      throw new Error(JSON.stringify(newError))
+    }
+  }
+
 }
 
 module.exports = MongoDBContainer
